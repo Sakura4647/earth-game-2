@@ -16,18 +16,17 @@
               sans: ['"Noto Sans TC"', 'sans-serif'],
             },
             colors: {
-              // Earth/Soil Palette (Yellow-Browns)
               wood: {
-                50: '#fcfbf7',  // Creamy background
+                50: '#fcfbf7',
                 100: '#f5f0e6',
                 200: '#ede0cc',
                 300: '#e0ccad',
-                400: '#d2b48c', // Tan/Khaki
-                500: '#b08d55', // Earthy Gold
+                400: '#d2b48c',
+                500: '#b08d55',
                 600: '#8f7042',
                 700: '#735735',
                 800: '#5c452d',
-                900: '#453221', // Dark Soil
+                900: '#453221',
               },
               nature: {
                 light: '#e9f5e9',
@@ -43,42 +42,511 @@
       body {
         font-family: 'Noto Sans TC', sans-serif;
         background-color: #fcfbf7;
-        overflow: hidden; /* Prevent scrolling during game */
+        overflow: hidden;
         user-select: none;
         -webkit-user-select: none;
-        touch-action: none; /* Prevent default touch actions like scroll */
+        touch-action: none;
       }
       .wood-texture {
         background-color: #fcfbf7;
-        background-image: radial-gradient(#d4c5b8 0.5px, transparent 0.5px), radial-gradient(#d4c5b8 0.5px, #fcfbf7 0.5px);
+        background-image: radial-gradient(#d4c5b8 0.5px, transparent 0.5px),
+                          radial-gradient(#d4c5b8 0.5px, #fcfbf7 0.5px);
         background-size: 20px 20px;
         background-position: 0 0, 10px 10px;
       }
       .fade-in { animation: fadeIn 0.3s ease-out; }
       @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+      .hidden { display: none !important; }
       
-      /* Pulse animation for the player dot */
       .player-pulse {
         box-shadow: 0 0 0 0 rgba(176, 141, 85, 0.7);
         animation: pulse-brown 1.5s infinite;
       }
       @keyframes pulse-brown {
-        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(176, 141, 85, 0.7); }
-        70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(176, 141, 85, 0); }
+        0%   { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(176, 141, 85, 0.7); }
+        70%  { transform: scale(1);    box-shadow: 0 0 0 10px rgba(176, 141, 85, 0); }
         100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(176, 141, 85, 0); }
       }
     </style>
-<script type="importmap">
-{
-  "imports": {
-    "react": "https://aistudiocdn.com/react@^19.2.1",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
-    "react/": "https://aistudiocdn.com/react@^19.2.1/"
-  }
-}
-</script>
 </head>
-<body class="wood-texture text-wood-900 min-h-screen tracking-wide">
-    <div id="root"></div>
+<body class="wood-texture text-wood-900 min-h-screen tracking-wide relative">
+
+    <!-- === START SCREEN === -->
+    <div id="start-screen" class="min-h-screen flex flex-col items-center justify-center p-4 fade-in">
+        <div class="max-w-md w-full bg-white/90 backdrop-blur-sm p-8 rounded-2xl shadow-xl border-2 border-wood-300 text-center">
+            <div class="mb-6"><span class="text-5xl">⛰️</span></div>
+            <h1 class="text-3xl md:text-4xl font-black text-wood-900 mb-8 tracking-widest">
+                土之穩行｜巧手走線
+            </h1>
+
+            <div class="bg-wood-50 p-6 rounded-xl border border-wood-200 text-left mb-8">
+                <p class="text-wood-700 mb-4 font-bold tracking-wider text-lg">
+                    脾主肌肉，氣血充盈則動作靈巧
+                </p>
+                <p class="text-base text-wood-600 mb-6 leading-relaxed font-medium tracking-wide">
+                    土行對應臟腑為脾與胃，與消化、肌肉動作的精巧有關。
+                </p>
+                <h2 class="text-xl font-bold text-wood-800 mb-3 border-b border-wood-300 pb-2 flex items-center gap-2 tracking-wider">
+                    <span>📜</span> 遊戲規則
+                </h2>
+                <ul class="space-y-3 text-wood-800 leading-relaxed text-base font-medium tracking-wide">
+                    <li class="flex items-start gap-2">
+                        <span class="font-bold text-nature-dark">①</span>
+                        <span>限時30秒，沿著發光路徑拖曳小圓點前進</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <span class="font-bold text-nature-dark">②</span>
+                        <span>小圓點一旦出界或碰觸邊線，遊戲立即結束</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <span class="font-bold text-nature-dark">③</span>
+                        <span>時間結束或出界後，依前進距離計分</span>
+                    </li>
+                </ul>
+            </div>
+
+            <button id="btn-start-game" class="w-full font-bold rounded-lg transition-all duration-200 shadow-sm active:scale-95 flex items-center justify-center gap-2 bg-nature-dark hover:bg-green-800 text-white shadow-green-200 px-8 py-3 text-2xl tracking-widest">
+                開始遊戲
+            </button>
+        </div>
+    </div>
+
+    <!-- === GAME SCREEN === -->
+    <div id="game-screen" class="hidden min-h-screen flex-col">
+        <!-- Top Bar -->
+        <div class="fixed top-0 left-0 right-0 z-40 bg-white/95 backdrop-blur shadow-md border-b border-wood-200 h-16 px-4">
+            <div class="max-w-6xl mx-auto h-full flex items-center justify-between">
+                <!-- Timer -->
+                <div class="flex items-center gap-2 w-1/3">
+                    <div id="timer-display" class="font-mono text-3xl font-bold flex items-center gap-2 text-wood-900">
+                        <span>⏳</span>
+                        <span id="timer-val">30</span>s
+                    </div>
+                </div>
+                <!-- Title (Desktop) -->
+                <div class="hidden md:block w-1/3 text-center text-wood-700 font-bold opacity-50 text-xl tracking-widest">
+                    土之穩行
+                </div>
+                <!-- Buttons -->
+                <div class="flex items-center justify-end gap-2 w-2/3 md:w-1/3">
+                    <button id="btn-show-rules" class="font-bold rounded-lg transition-all duration-200 shadow-sm active:scale-95 flex items-center justify-center gap-2 border-2 border-wood-600 text-wood-800 hover:bg-wood-100 px-3 py-1 text-base tracking-wide">
+                        規則
+                    </button>
+                    <button id="btn-restart" class="font-bold rounded-lg transition-all duration-200 shadow-sm active:scale-95 flex items-center justify-center gap-2 bg-wood-600 hover:bg-wood-700 text-white px-3 py-1 text-base tracking-wide">
+                        重來
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Area -->
+        <div class="w-full flex-grow flex justify-center items-center pt-20 pb-4 relative overflow-hidden">
+            <div class="relative w-full max-w-[350px] aspect-[350/500] border-4 border-wood-300 rounded-2xl bg-white shadow-inner mx-4 select-none touch-none">
+                <svg id="game-svg" viewBox="0 0 350 500" class="w-full h-full cursor-crosshair">
+                    <!-- Path Definition -->
+                    <defs>
+                        <path id="track-path" d="M 175 450 C 75 450 50 350 50 300 C 50 200 200 250 250 150 C 275 100 200 50 175 50" />
+                    </defs>
+                    
+                    <!-- Visible Track Background -->
+                    <path d="M 175 450 C 75 450 50 350 50 300 C 50 200 200 250 250 150 C 275 100 200 50 175 50"
+                          fill="none" stroke="#ede0cc" stroke-width="40" stroke-linecap="round" stroke-linejoin="round" />
+                    
+                    <!-- Center Line Reference -->
+                    <path d="M 175 450 C 75 450 50 350 50 300 C 50 200 200 250 250 150 C 275 100 200 50 175 50"
+                          fill="none" stroke="#e0ccad" stroke-width="2" stroke-dasharray="5,5" stroke-linecap="round" />
+
+                    <!-- Start Point -->
+                    <circle cx="175" cy="450" r="6" fill="#b08d55" opacity="0.5" />
+                    <!-- End Point -->
+                    <circle cx="175" cy="50" r="6" fill="#b08d55" opacity="0.5" />
+
+                    <!-- Player Dot -->
+                    <circle id="player-dot" cx="175" cy="450" r="12" fill="#8f7042" class="player-pulse" stroke="#fff" stroke-width="2" />
+                </svg>
+
+                <!-- Progress Text -->
+                <div class="absolute top-4 right-4 bg-wood-100 px-3 py-1 rounded-full text-wood-700 font-mono text-sm border border-wood-200">
+                    <span id="game-progress">0</span>%
+                </div>
+            </div>
+        </div>
+
+        <!-- Countdown Overlay -->
+        <div id="countdown-overlay" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-wood-900/40 backdrop-blur-sm">
+            <div id="countdown-val" class="text-9xl font-black text-white drop-shadow-lg animate-ping">3</div>
+        </div>
+    </div>
+
+    <!-- === RESULT MODAL === -->
+    <div id="result-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-wood-900/60 backdrop-blur-sm fade-in">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden p-6 text-center relative">
+            <div class="text-7xl mb-4">⛰️</div>
+            <div class="mb-4">
+                <p class="text-wood-600 mb-1 font-bold tracking-wider text-lg">結果</p>
+                <p class="text-3xl font-black text-wood-900 tracking-wide">
+                    完成 <span id="res-percent" class="text-nature-dark">0</span>% 路徑
+                </p>
+            </div>
+
+            <div class="bg-wood-50 p-4 rounded-xl border-2 border-wood-200 mb-4">
+                <h3 id="res-msg" class="text-2xl font-bold text-nature-dark mb-2 tracking-wider"></h3>
+                <p id="res-submsg" class="text-wood-700 text-base mb-3 font-medium tracking-wide"></p>
+                <div class="flex justify-center items-center gap-1 text-wood-400 text-base font-bold bg-white py-2 rounded-lg border border-wood-100">
+                    <span>得分：</span>
+                    <span id="res-score" class="text-3xl text-wood-800">0</span>
+                    <span>分</span>
+                </div>
+            </div>
+
+            <div class="text-left mb-6">
+                <h4 class="text-base font-bold text-wood-500 mb-2 border-b border-wood-100 pb-1 tracking-wider">🏅 計分方式</h4>
+                <div class="space-y-2 text-sm text-wood-700 tracking-wide">
+                    <div class="flex justify-between items-center whitespace-nowrap gap-2">
+                        <span class="font-bold text-nature-dark">完成 70～100% 路徑</span>
+                        <span class="font-bold">3分</span>
+                        <span class="text-right flex-1 text-wood-500 overflow-hidden text-ellipsis">脾胃強健，動作靈巧</span>
+                    </div>
+                    <div class="flex justify-between items-center whitespace-nowrap gap-2">
+                        <span class="font-bold text-nature-dark">完成 35～69% 路徑</span>
+                        <span class="font-bold">2分</span>
+                        <span class="text-right flex-1 text-wood-500 overflow-hidden text-ellipsis">脾胃不錯，節奏穩當</span>
+                    </div>
+                    <div class="flex justify-between items-center whitespace-nowrap gap-2">
+                        <span class="font-bold text-nature-dark">完成 0～34% 路徑</span>
+                        <span class="font-bold">1分</span>
+                        <span class="text-right flex-1 text-wood-500 overflow-hidden text-ellipsis">脾胃警告，需多調養</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex gap-2">
+                <button id="btn-result-home" class="flex-1 font-bold rounded-lg transition-all duration-200 shadow-sm active:scale-95 bg-wood-200 hover:bg-wood-300 text-wood-800 px-4 py-2 text-lg tracking-widest">
+                    回到開始
+                </button>
+                <button id="btn-result-restart" class="flex-1 font-bold rounded-lg transition-all duration-200 shadow-sm active:scale-95 bg-nature-dark hover:bg-green-800 text-white shadow-green-200 px-4 py-2 text-lg tracking-widest">
+                    再玩一次
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- === RULES MODAL === -->
+    <div id="rules-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-wood-900/60 backdrop-blur-sm fade-in">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden p-6 relative">
+            <button id="btn-close-rules" class="absolute top-4 right-4 text-wood-400 hover:text-wood-700 transition-colors p-2 rounded-full hover:bg-wood-100">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+
+            <p class="text-wood-700 mb-2 font-bold text-center tracking-wider text-lg">
+                脾主肌肉，氣血充盈則動作靈巧
+            </p>
+            <p class="text-base text-wood-600 mb-6 leading-relaxed text-center font-medium tracking-wide">
+                土行對應臟腑為脾與胃，與消化、肌肉動作的精巧有關。
+            </p>
+            <h3 class="text-2xl font-bold text-center text-wood-800 mb-4 border-b border-wood-100 pb-3 tracking-widest">
+                📜 遊戲規則
+            </h3>
+            <ul class="space-y-4 text-wood-800 font-medium tracking-wide">
+                <li class="flex gap-2 text-base">
+                    <span class="font-bold text-nature-dark">①</span>
+                    <span>限時30秒，沿著發光路徑拖曳小圓點前進</span>
+                </li>
+                <li class="flex gap-2 text-base">
+                    <span class="font-bold text-nature-dark">②</span>
+                    <span>小圓點一旦出界或碰觸邊線，遊戲立即結束</span>
+                </li>
+                <li class="flex gap-2 text-base">
+                    <span class="font-bold text-nature-dark">③</span>
+                    <span>時間結束或出界後，依前進距離計分</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- === LOGIC SCRIPT === -->
+    <script>
+        // --- Constants & Config ---
+        const PATH_SAFE_RADIUS = 22;
+        const PATH_RESOLUTION = 1000;
+        const VIEWBOX_WIDTH = 350;
+        const VIEWBOX_HEIGHT = 500;
+        
+        // --- DOM Elements ---
+        const startScreen = document.getElementById('start-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const resultModal = document.getElementById('result-modal');
+        const rulesModal = document.getElementById('rules-modal');
+        const countdownOverlay = document.getElementById('countdown-overlay');
+        const countdownValEl = document.getElementById('countdown-val');
+        
+        const gameSvg = document.getElementById('game-svg');
+        const trackPath = document.getElementById('track-path');
+        const playerDot = document.getElementById('player-dot');
+        const gameProgressEl = document.getElementById('game-progress');
+        const timerValEl = document.getElementById('timer-val');
+        const timerDisplayEl = document.getElementById('timer-display');
+
+        // Result Elements
+        const resPercent = document.getElementById('res-percent');
+        const resScore = document.getElementById('res-score');
+        const resMsg = document.getElementById('res-msg');
+        const resSubMsg = document.getElementById('res-submsg');
+
+        // --- Game State ---
+        let gameState = 'START'; // START, COUNTDOWN, PLAYING, FINISHED
+        let pathPoints = [];
+        let playerProgress = 0; // 0 to 100
+        let isDragging = false;
+        let timeLeft = 30;
+        let timerInterval = null;
+        
+        // --- Initialization ---
+        function initPath() {
+            const len = trackPath.getTotalLength();
+            pathPoints = [];
+            for (let i = 0; i <= PATH_RESOLUTION; i++) {
+                const pt = trackPath.getPointAtLength((i / PATH_RESOLUTION) * len);
+                pathPoints.push({ x: pt.x, y: pt.y });
+            }
+            // Initialize player position
+            updatePlayerPos(pathPoints[0].x, pathPoints[0].y);
+        }
+
+        function updatePlayerPos(x, y) {
+            playerDot.setAttribute('cx', x);
+            playerDot.setAttribute('cy', y);
+        }
+
+        function switchScreen(screenName) {
+            startScreen.classList.add('hidden');
+            gameScreen.classList.add('hidden');
+            resultModal.classList.add('hidden');
+            rulesModal.classList.add('hidden');
+
+            if (screenName === 'START') startScreen.classList.remove('hidden');
+            if (screenName === 'GAME') gameScreen.classList.remove('hidden');
+            if (screenName === 'RESULT') {
+                gameScreen.classList.remove('hidden'); // Show result over game
+                resultModal.classList.remove('hidden');
+            }
+            if (screenName === 'RULES') {
+                gameScreen.classList.remove('hidden'); // Show rules over game
+                rulesModal.classList.remove('hidden');
+            }
+        }
+
+        // --- Game Logic ---
+
+        function startGameSequence() {
+            switchScreen('GAME');
+            gameState = 'COUNTDOWN';
+            timeLeft = 30;
+            playerProgress = 0;
+            isDragging = false;
+            updateUI();
+            
+            // Reset player to start
+            if (pathPoints.length > 0) {
+                updatePlayerPos(pathPoints[0].x, pathPoints[0].y);
+            }
+
+            // Countdown
+            countdownOverlay.classList.remove('hidden');
+            let count = 3;
+            countdownValEl.textContent = count;
+            
+            const countInt = setInterval(() => {
+                count--;
+                if (count > 0) {
+                    countdownValEl.textContent = count;
+                } else {
+                    clearInterval(countInt);
+                    countdownOverlay.classList.add('hidden');
+                    gameState = 'PLAYING';
+                    startTimer();
+                }
+            }, 1000);
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            timerValEl.textContent = timeLeft;
+            timerDisplayEl.classList.remove('text-red-600', 'animate-pulse');
+            timerDisplayEl.classList.add('text-wood-900');
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateUI();
+                if (timeLeft <= 5) {
+                    timerDisplayEl.classList.remove('text-wood-900');
+                    timerDisplayEl.classList.add('text-red-600', 'animate-pulse');
+                }
+                if (timeLeft <= 0) {
+                    endGame(true); // Time up
+                }
+            }, 1000);
+        }
+
+        function updateUI() {
+            timerValEl.textContent = timeLeft;
+            gameProgressEl.textContent = Math.round(playerProgress);
+        }
+
+        function endGame(timeUp) {
+            clearInterval(timerInterval);
+            gameState = 'FINISHED';
+            isDragging = false;
+            showResult();
+        }
+
+        function showResult() {
+            const pct = Math.round(playerProgress);
+            resPercent.textContent = pct;
+            
+            let score, msg, sub;
+            if (pct >= 70) {
+                score = 3;
+                msg = "脾胃強健，動作靈巧";
+                sub = "手部控制非常精細，表現亮眼。";
+            } else if (pct >= 35) {
+                score = 2;
+                msg = "脾胃不錯，節奏穩當";
+                sub = "你的精細度不錯，再多一點耐心。";
+            } else {
+                score = 1;
+                msg = "脾胃警告，需多調養";
+                sub = "深呼吸，放慢一點，下一次會更精準。";
+            }
+            
+            resScore.textContent = score;
+            resMsg.textContent = msg;
+            resSubMsg.textContent = sub;
+            
+            switchScreen('RESULT');
+        }
+
+        // --- Interaction Logic ---
+        
+        function getSVGCoordinates(evt) {
+            const pt = gameSvg.createSVGPoint();
+            // Handle touch or mouse
+            if (evt.touches && evt.touches.length) {
+                pt.x = evt.touches[0].clientX;
+                pt.y = evt.touches[0].clientY;
+            } else {
+                pt.x = evt.clientX;
+                pt.y = evt.clientY;
+            }
+            return pt.matrixTransform(gameSvg.getScreenCTM().inverse());
+        }
+
+        function handlePointerDown(e) {
+            if (gameState !== 'PLAYING') return;
+            const pos = getSVGCoordinates(e);
+            
+            // Check if clicking near the current player dot (pickup)
+            const currentDotPos = {
+                x: parseFloat(playerDot.getAttribute('cx')),
+                y: parseFloat(playerDot.getAttribute('cy'))
+            };
+            
+            const dist = Math.hypot(pos.x - currentDotPos.x, pos.y - currentDotPos.y);
+            
+            if (dist < 40) { // Pickup radius
+                isDragging = true;
+                handlePointerMove(e);
+            }
+        }
+
+        function handlePointerMove(e) {
+            if (gameState !== 'PLAYING' || !isDragging) return;
+            // Prevent default usually helps on touch devices to stop scroll
+            // but strict prevention is handled by CSS touch-action: none
+            
+            const cursor = getSVGCoordinates(e);
+            
+            // 1. Find closest point on path
+            // Optimization: Only search near current progress
+            const totalPoints = pathPoints.length;
+            const currentIdx = Math.floor((playerProgress / 100) * totalPoints);
+            const searchWindow = 100; // Search window
+            
+            let bestDist = Infinity;
+            let bestIdx = currentIdx;
+
+            const startSearch = Math.max(0, currentIdx - 20);
+            const endSearch = Math.min(totalPoints - 1, currentIdx + searchWindow);
+
+            for (let i = startSearch; i <= endSearch; i++) {
+                const pt = pathPoints[i];
+                const d = Math.hypot(cursor.x - pt.x, cursor.y - pt.y);
+                if (d < bestDist) {
+                    bestDist = d;
+                    bestIdx = i;
+                }
+            }
+
+            // 2. Collision Check
+            if (bestDist > PATH_SAFE_RADIUS) {
+                endGame(false); // Out of bounds
+                return;
+            }
+
+            // 3. Update Visuals
+            // Snap to cursor visually? Or snap to path?
+            // "Wire loop" usually means ring is around wire.
+            // Let's stick player exactly to cursor for responsive feel, 
+            // but strictly track progress based on projection.
+            updatePlayerPos(cursor.x, cursor.y);
+
+            // 4. Update Progress
+            const newProgress = (bestIdx / totalPoints) * 100;
+            if (newProgress > playerProgress) {
+                playerProgress = newProgress;
+                gameProgressEl.textContent = Math.round(playerProgress);
+            }
+
+            // 5. Win Check
+            if (playerProgress >= 99) {
+                playerProgress = 100;
+                endGame(false); // Finished
+            }
+        }
+
+        function handlePointerUp(e) {
+            isDragging = false;
+        }
+
+        // --- Event Listeners ---
+        document.getElementById('btn-start-game').addEventListener('click', startGameSequence);
+        document.getElementById('btn-restart').addEventListener('click', startGameSequence);
+        document.getElementById('btn-result-restart').addEventListener('click', startGameSequence);
+        document.getElementById('btn-result-home').addEventListener('click', () => switchScreen('START'));
+        
+        document.getElementById('btn-show-rules').addEventListener('click', () => {
+            if (gameState === 'PLAYING') isDragging = false; // Pause drag if opening rules
+            rulesModal.classList.remove('hidden');
+        });
+        document.getElementById('btn-close-rules').addEventListener('click', () => rulesModal.classList.add('hidden'));
+
+        // Pointer Events for SVG
+        gameSvg.addEventListener('mousedown', handlePointerDown);
+        gameSvg.addEventListener('mousemove', handlePointerMove);
+        window.addEventListener('mouseup', handlePointerUp);
+
+        gameSvg.addEventListener('touchstart', handlePointerDown, { passive: false });
+        gameSvg.addEventListener('touchmove', (e) => { e.preventDefault(); handlePointerMove(e); }, { passive: false });
+        window.addEventListener('touchend', handlePointerUp);
+
+        // --- Init ---
+        window.onload = () => {
+            initPath();
+            switchScreen('START');
+        };
+
+    </script>
 </body>
 </html>
