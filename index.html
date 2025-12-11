@@ -53,6 +53,12 @@
         user-select: none;
         -webkit-user-select: none;
       }
+
+      /* Lock scrolling when game is playing */
+      body.no-scroll {
+        overflow: hidden;
+        touch-action: none;
+      }
       
       /* Specific class to lock touch actions within the game area */
       .game-touch-lock {
@@ -70,6 +76,15 @@
       @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
       .hidden { display: none !important; }
       
+      /* Cursor styles */
+      #player-group {
+        cursor: grab;
+        pointer-events: bounding-box;
+      }
+      #player-group:active {
+        cursor: grabbing;
+      }
+
       .spark-anim {
         animation: spark 0.2s linear infinite;
       }
@@ -80,11 +95,12 @@
       }
     </style>
 </head>
-<body class="wood-texture text-wood-900 min-h-screen tracking-wide relative">
+<body class="wood-texture text-wood-900 min-h-screen tracking-wide flex flex-col">
 
     <!-- === START SCREEN === -->
-    <div id="start-screen" class="min-h-screen flex flex-col items-center justify-center p-4 fade-in">
-        <div class="max-w-md w-full bg-white/90 backdrop-blur-sm p-8 rounded-2xl shadow-xl border-2 border-wood-300 text-center">
+    <!-- Added flex-1 to center vertically in viewport -->
+    <div id="start-screen" class="flex-1 flex flex-col items-center justify-center p-4 fade-in w-full max-w-md mx-auto">
+        <div class="w-full bg-white/90 backdrop-blur-sm p-8 rounded-2xl shadow-xl border-2 border-wood-300 text-center">
             <div class="mb-6"><span class="text-5xl">⚡</span></div>
             <h1 class="text-3xl md:text-4xl font-black text-wood-900 mb-8 tracking-widest">
                 土之穩行｜急急電流棒
@@ -123,7 +139,7 @@
     </div>
 
     <!-- === GAME SCREEN === -->
-    <div id="game-screen" class="hidden min-h-screen flex-col">
+    <div id="game-screen" class="hidden min-h-screen w-full flex-col">
         <!-- Top Bar -->
         <div class="fixed top-0 left-0 right-0 z-40 bg-white/95 backdrop-blur shadow-md border-b border-wood-200 h-16 px-4">
             <div class="max-w-6xl mx-auto h-full flex items-center justify-between">
@@ -150,11 +166,11 @@
             </div>
         </div>
 
-        <!-- Game Area -->
-        <div class="w-full flex-grow flex justify-center items-center pt-20 pb-4 relative overflow-hidden">
+        <!-- Game Area Container - Centered -->
+        <div class="flex-1 flex flex-col items-center justify-center pt-20 pb-4 px-4 overflow-hidden">
             <!-- Game Board -->
-            <div class="relative w-full max-w-[350px] aspect-[350/500] border-4 border-wood-300 rounded-2xl bg-white shadow-inner mx-4 select-none game-touch-lock">
-                <svg id="game-svg" viewBox="0 0 350 500" class="w-full h-full cursor-crosshair overflow-visible">
+            <div class="relative w-full max-w-[350px] aspect-[350/500] border-4 border-wood-300 rounded-2xl bg-white shadow-inner select-none game-touch-lock mx-auto">
+                <svg id="game-svg" viewBox="0 0 350 500" class="w-full h-full cursor-default overflow-visible">
                     <!-- Definitions -->
                     <defs>
                         <!-- Complex "Buzz Wire" Path -->
@@ -171,21 +187,20 @@
                     <!-- 1. The Wire (Visual) -->
                     <!-- Main metallic wire -->
                     <path d="M 175 480 C 120 480 50 460 30 400 L 30 320 C 30 280 100 300 130 260 S 220 220 260 260 S 320 220 320 180 L 320 120 C 320 60 200 80 175 30"
-                          fill="none" stroke="#d2b48c" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+                          fill="none" stroke="#d2b48c" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;" />
                     <!-- Highlight for metallic effect -->
                     <path d="M 175 480 C 120 480 50 460 30 400 L 30 320 C 30 280 100 300 130 260 S 220 220 260 260 S 320 220 320 180 L 320 120 C 320 60 200 80 175 30"
-                          fill="none" stroke="#f5e6d3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                          fill="none" stroke="#f5e6d3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;" />
 
                     <!-- Start Point -->
-                    <circle cx="175" cy="480" r="8" fill="#8f7042" />
+                    <circle cx="175" cy="480" r="8" fill="#8f7042" style="pointer-events: none;" />
                     <!-- End Point -->
-                    <circle cx="175" cy="30" r="8" fill="#4caf50" opacity="0.8" />
+                    <circle cx="175" cy="30" r="8" fill="#4caf50" opacity="0.8" style="pointer-events: none;" />
 
                     <!-- 2. The Player (Handle + Ring) -->
-                    <!-- Uses a group to move both together -->
+                    <!-- Uses a group to move both together. Add pointer-events to auto or bounding-box -->
                     <g id="player-group" transform="translate(175, 480)">
                          <!-- Handle (Dark Grey Stick) -->
-                         <!-- Offset to be below the ring so finger doesn't block view -->
                          <path d="M 0,14 L 0,60" stroke="#4a4a4a" stroke-width="6" stroke-linecap="round" />
                          <!-- Handle Grip (Visual) -->
                          <rect x="-6" y="40" width="12" height="20" rx="3" fill="#333" />
@@ -194,22 +209,22 @@
                          <!-- r=15 -->
                          <circle id="player-ring" cx="0" cy="0" r="15" fill="transparent" stroke="#5c452d" stroke-width="4" />
                          
-                         <!-- Touch Hit Area (Invisible, larger than handle for easy grabbing) -->
-                         <rect x="-30" y="0" width="60" height="80" fill="transparent" />
+                         <!-- Hit Area: Large transparent rect to make grabbing easier -->
+                         <rect x="-30" y="-15" width="60" height="95" fill="transparent" />
                     </g>
                     
                     <!-- Collision Marker (Shows where user hit) -->
-                    <circle id="collision-marker" cx="0" cy="0" r="4" fill="red" class="hidden" />
+                    <circle id="collision-marker" cx="0" cy="0" r="4" fill="red" class="hidden" style="pointer-events: none;" />
                 </svg>
 
                 <!-- Progress Text -->
-                <div class="absolute top-4 right-4 bg-wood-100 px-3 py-1 rounded-full text-wood-700 font-mono text-sm border border-wood-200">
+                <div class="absolute top-4 right-4 bg-wood-100 px-3 py-1 rounded-full text-wood-700 font-mono text-sm border border-wood-200 pointer-events-none">
                     <span id="game-progress">0</span>%
                 </div>
             </div>
             
             <!-- Instruction Text -->
-            <div class="mt-4 text-center text-wood-500 text-sm font-bold tracking-wider animate-pulse">
+            <div class="mt-4 text-center text-wood-500 text-sm font-bold tracking-wider animate-pulse select-none">
                 👇 拖曳黑色手柄 保持圓環不碰線
             </div>
         </div>
@@ -222,7 +237,7 @@
 
     <!-- === RESULT MODAL === -->
     <div id="result-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-wood-900/60 backdrop-blur-sm fade-in">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto p-6 text-center relative">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto p-6 text-center relative mx-auto">
             <div class="text-7xl mb-4">⚡</div>
             <div class="mb-4">
                 <p class="text-wood-600 mb-1 font-bold tracking-wider text-lg">結果</p>
@@ -275,7 +290,7 @@
 
     <!-- === RULES MODAL === -->
     <div id="rules-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-wood-900/60 backdrop-blur-sm fade-in">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto p-6 relative">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto p-6 relative mx-auto">
             <button id="btn-close-rules" class="absolute top-4 right-4 text-wood-400 hover:text-wood-700 transition-colors p-2 rounded-full hover:bg-wood-100">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -318,10 +333,6 @@
         // e.g. 15 - 3 - 4 = 8px deviation allowed.
         const SAFE_DISTANCE = PLAYER_RADIUS - (WIRE_THICKNESS / 2) - TOLERANCE_PX;
         
-        // Handle offset: The distance from the Ring Center to where the user likely touches the handle
-        // This ensures the ring is above the finger.
-        const HANDLE_TOUCH_OFFSET_Y = 50; 
-
         const PATH_RESOLUTION = 1000;
         
         // --- DOM Elements ---
@@ -353,10 +364,14 @@
         let pathPoints = [];
         let playerProgress = 0; // 0 to 100
         let isDragging = false;
+        let hasStartedMoving = false; // To track if we have done the initial snap
         let timeLeft = 30;
         let timerInterval = null;
         let startPoint = {x: 0, y: 0};
         
+        // Offset between cursor and player group origin (ring center)
+        let dragOffset = { x: 0, y: 0 }; 
+
         // --- Initialization ---
         function initPath() {
             const len = trackPath.getTotalLength();
@@ -366,12 +381,10 @@
                 pathPoints.push({ x: pt.x, y: pt.y });
             }
             startPoint = pathPoints[0];
-            // Initialize player position to start
             updatePlayerPos(startPoint.x, startPoint.y);
         }
 
         function updatePlayerPos(x, y) {
-            // Move the entire group (Ring + Handle)
             playerGroup.setAttribute('transform', `translate(${x}, ${y})`);
         }
 
@@ -380,15 +393,20 @@
             gameScreen.classList.add('hidden');
             resultModal.classList.add('hidden');
             rulesModal.classList.add('hidden');
+            document.body.classList.remove('no-scroll'); // Default allow scroll
 
-            if (screenName === 'START') startScreen.classList.remove('hidden');
-            if (screenName === 'GAME') gameScreen.classList.remove('hidden');
+            if (screenName === 'START') {
+                startScreen.classList.remove('hidden');
+            }
+            if (screenName === 'GAME') {
+                gameScreen.classList.remove('hidden');
+            }
             if (screenName === 'RESULT') {
-                gameScreen.classList.remove('hidden'); // Show result over game
+                gameScreen.classList.remove('hidden');
                 resultModal.classList.remove('hidden');
             }
             if (screenName === 'RULES') {
-                gameScreen.classList.remove('hidden'); // Show rules over game
+                gameScreen.classList.remove('hidden');
                 rulesModal.classList.remove('hidden');
             }
         }
@@ -401,14 +419,13 @@
             timeLeft = 30;
             playerProgress = 0;
             isDragging = false;
+            hasStartedMoving = false;
             collisionMarker.classList.add('hidden');
-            playerRing.setAttribute('stroke', '#5c452d'); // Reset color
+            playerRing.setAttribute('stroke', '#5c452d'); 
             updateUI();
             
-            // Reset player to start
             updatePlayerPos(startPoint.x, startPoint.y);
 
-            // Countdown
             countdownOverlay.classList.remove('hidden');
             let count = 3;
             countdownValEl.textContent = count;
@@ -421,6 +438,7 @@
                     clearInterval(countInt);
                     countdownOverlay.classList.add('hidden');
                     gameState = 'PLAYING';
+                    document.body.classList.add('no-scroll'); // Lock scroll on play
                     startTimer();
                 }
             }, 1000);
@@ -440,7 +458,7 @@
                     timerDisplayEl.classList.add('text-red-600', 'animate-pulse');
                 }
                 if (timeLeft <= 0) {
-                    endGame(true); // Time up
+                    endGame(true);
                 }
             }, 1000);
         }
@@ -454,6 +472,7 @@
             clearInterval(timerInterval);
             gameState = 'FINISHED';
             isDragging = false;
+            document.body.classList.remove('no-scroll'); // Unlock scroll
             showResult();
         }
 
@@ -485,9 +504,9 @@
 
         // --- Interaction Logic ---
         
+        // Helper to get coordinates relative to SVG space
         function getSVGCoordinates(evt) {
             const pt = gameSvg.createSVGPoint();
-            // Handle touch or mouse
             if (evt.touches && evt.touches.length) {
                 pt.x = evt.touches[0].clientX;
                 pt.y = evt.touches[0].clientY;
@@ -495,66 +514,70 @@
                 pt.x = evt.clientX;
                 pt.y = evt.clientY;
             }
+            // Transform client coordinate to SVG coordinate
             return pt.matrixTransform(gameSvg.getScreenCTM().inverse());
         }
 
-        function handlePointerDown(e) {
-            if (gameState !== 'PLAYING') return;
-            const pos = getSVGCoordinates(e);
-            
-            // Get current Player Center Position from transform
+        // Get current translation of the player group
+        function getPlayerGroupPos() {
             const transform = playerGroup.getAttribute('transform');
             const matches = transform.match(/translate\(([^,]+),\s*([^)]+)\)/);
-            if (!matches) return;
-            
-            const currentX = parseFloat(matches[1]);
-            const currentY = parseFloat(matches[2]);
-
-            // Hit testing: Check if user clicked near the handle (below the ring)
-            // Handle is approx at (currentX, currentY + 30)
-            const handleX = currentX;
-            const handleY = currentY + 40; // Approx handle center
-            
-            const dist = Math.hypot(pos.x - handleX, pos.y - handleY);
-            
-            // Large pickup radius for the handle (60px)
-            if (dist < 60) {
-                isDragging = true;
-                // Snap to handle center logic could go here, but smooth drag is better
-                handlePointerMove(e);
+            if (matches) {
+                return { x: parseFloat(matches[1]), y: parseFloat(matches[2]) };
             }
+            return { x: 0, y: 0 };
         }
 
-        function handlePointerMove(e) {
+        function handleDragStart(e) {
+            if (gameState !== 'PLAYING') return;
+            // Allow default for mouse but prevent for touch to avoid emulation
+            if (e.type === 'touchstart') {
+               // Don't prevent default here if we want to allow clicks, but for dragging
+               // it's safer to prevent default to stop scrolling logic interference immediately?
+               // Actually we handle scroll locking via CSS, so we can be lenient here.
+               // e.preventDefault(); 
+            }
+
+            const cursor = getSVGCoordinates(e);
+            const currentPos = getPlayerGroupPos();
+
+            // Calculate offset so the ring doesn't jump to finger center
+            dragOffset.x = cursor.x - currentPos.x;
+            dragOffset.y = cursor.y - currentPos.y;
+
+            isDragging = true;
+            // Do NOT set hasStartedMoving = true here.
+            // We wait for the first move event to perform "Snap to Safety".
+            // Also DO NOT check collision here.
+        }
+
+        function handleDragMove(e) {
             if (gameState !== 'PLAYING' || !isDragging) return;
             
+            // Prevent scrolling on mobile while dragging
+            if (e.cancelable) e.preventDefault();
+
             const cursor = getSVGCoordinates(e);
             
-            // Apply Offset: The RING (player) should be above the cursor (handle position)
-            // This prevents the finger from covering the ring
-            const targetRingX = cursor.x;
-            const targetRingY = cursor.y - HANDLE_TOUCH_OFFSET_Y;
+            // Calculate proposed new position based on drag offset
+            let targetX = cursor.x - dragOffset.x;
+            let targetY = cursor.y - dragOffset.y;
 
-            // 1. Move Player Group to new location immediately (Responsive UI)
-            updatePlayerPos(targetRingX, targetRingY);
-
-            // 2. Check Collision against Path
-            // Find nearest point on path to the RING CENTER
+            // Find nearest path point
             const totalPoints = pathPoints.length;
             const currentIdx = Math.floor((playerProgress / 100) * totalPoints);
-            const searchWindow = 100; 
-            
+            // Search window optimization
+            const searchWindow = 150; 
+            const startSearch = Math.max(0, currentIdx - 50);
+            const endSearch = Math.min(totalPoints - 1, currentIdx + searchWindow);
+
             let bestDist = Infinity;
             let bestIdx = currentIdx;
             let nearestPoint = null;
 
-            // Search optimization: Look around current progress
-            const startSearch = Math.max(0, currentIdx - 20);
-            const endSearch = Math.min(totalPoints - 1, currentIdx + searchWindow);
-
             for (let i = startSearch; i <= endSearch; i++) {
                 const pt = pathPoints[i];
-                const d = Math.hypot(targetRingX - pt.x, targetRingY - pt.y);
+                const d = Math.hypot(targetX - pt.x, targetY - pt.y);
                 if (d < bestDist) {
                     bestDist = d;
                     bestIdx = i;
@@ -562,49 +585,65 @@
                 }
             }
 
-            // 3. Collision Logic: Buzz Wire Mode
-            // Distance is from Ring Center to Wire Center.
-            // Ring Radius = 15, Wire Thickness = 6.
-            // Inner gap = 15 - 3 = 12.
-            // Wire radius = 3.
-            // Collision if Ring Inner Edge hits Wire Outer Edge.
-            // i.e., Distance > (RingRadius - WireThickness/2)
-            // With Tolerance: Distance > (15 - 3 + tolerance) -> Collision
+            // --- Initial Snap Logic ---
+            if (!hasStartedMoving) {
+                // First move action. 
+                // If user is far from path (unsafe), snap them to the nearest point.
+                if (bestDist > SAFE_DISTANCE) {
+                    // Snap!
+                    targetX = nearestPoint.x;
+                    targetY = nearestPoint.y;
+                    
+                    // IMPORTANT: Recalculate dragOffset so the ring doesn't jump back 
+                    // to the finger's relative position on the next frame.
+                    // New Group Pos = Cursor - NewOffset
+                    // => NewOffset = Cursor - New Group Pos
+                    dragOffset.x = cursor.x - targetX;
+                    dragOffset.y = cursor.y - targetY;
+                }
+                hasStartedMoving = true;
+                // No collision check on the very first frame of movement to allow snapping.
+                updatePlayerPos(targetX, targetY);
+                return;
+            }
+
+            // --- Normal Drag Logic ---
             
-            // Actually, prompt asked for stricter: Distance > (r + tolerance) implies OUT.
-            // But physics wise: if distance > (RingRadius - WireRadius), we hit.
-            // Let's use SAFE_DISTANCE constant.
-            
+            // 1. Move Player
+            updatePlayerPos(targetX, targetY);
+
+            // 2. Strict Collision Check
             if (bestDist > SAFE_DISTANCE + TOLERANCE_PX) {
-                // COLLISION!
+                // Collision!
                 collisionMarker.setAttribute('cx', nearestPoint.x);
                 collisionMarker.setAttribute('cy', nearestPoint.y);
                 collisionMarker.classList.remove('hidden');
-                playerRing.setAttribute('stroke', '#ff0000'); // Red ring
+                playerRing.setAttribute('stroke', '#ff0000');
                 endGame(false); 
                 return;
             }
 
-            // 4. Update Progress
-            // Only update if moved forward
+            // 3. Update Progress
             const newProgress = (bestIdx / totalPoints) * 100;
             if (newProgress > playerProgress) {
                 playerProgress = newProgress;
                 gameProgressEl.textContent = Math.round(playerProgress);
             }
 
-            // 5. Win Check
+            // 4. Win Check
             if (playerProgress >= 98) {
                 playerProgress = 100;
-                endGame(false); // Finished
+                endGame(false); 
             }
         }
 
-        function handlePointerUp(e) {
+        function handleDragEnd(e) {
             isDragging = false;
         }
 
         // --- Event Listeners ---
+        
+        // Buttons
         document.getElementById('btn-start-game').addEventListener('click', startGameSequence);
         document.getElementById('btn-restart').addEventListener('click', startGameSequence);
         document.getElementById('btn-result-restart').addEventListener('click', startGameSequence);
@@ -616,14 +655,16 @@
         });
         document.getElementById('btn-close-rules').addEventListener('click', () => rulesModal.classList.add('hidden'));
 
-        // Pointer Events for SVG
-        gameSvg.addEventListener('mousedown', handlePointerDown);
-        gameSvg.addEventListener('mousemove', handlePointerMove);
-        window.addEventListener('mouseup', handlePointerUp);
+        // Drag Events
+        // Bind start to the player group (handle + ring)
+        playerGroup.addEventListener('mousedown', handleDragStart);
+        playerGroup.addEventListener('touchstart', handleDragStart, { passive: false });
 
-        gameSvg.addEventListener('touchstart', handlePointerDown, { passive: false });
-        gameSvg.addEventListener('touchmove', (e) => { e.preventDefault(); handlePointerMove(e); }, { passive: false });
-        window.addEventListener('touchend', handlePointerUp);
+        // Bind move/end to window to catch fast movements
+        window.addEventListener('mousemove', handleDragMove);
+        window.addEventListener('touchmove', handleDragMove, { passive: false });
+        window.addEventListener('mouseup', handleDragEnd);
+        window.addEventListener('touchend', handleDragEnd);
 
         // --- Init ---
         window.onload = () => {
