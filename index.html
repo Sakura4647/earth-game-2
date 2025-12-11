@@ -173,9 +173,9 @@
                 <svg id="game-svg" viewBox="0 0 350 500" class="w-full h-full cursor-default overflow-visible">
                     <!-- Definitions -->
                     <defs>
-                        <!-- Complex "Buzz Wire" Path -->
-                        <!-- Start Bottom (175, 480) -> End Top (175, 30) -->
-                        <path id="track-path" d="M 175 480 C 120 480 50 460 30 400 L 30 320 C 30 280 100 300 130 260 S 220 220 260 260 S 320 220 320 180 L 320 120 C 320 60 200 80 175 30" />
+                        <!-- Complex "Buzz Wire" Path: S-shaped Snake -->
+                        <!-- Start Bottom (175, 480) -> Curve Left -> Curve Right -> Curve Left -> Curve Right -> End Top (175, 30) -->
+                        <path id="track-path" d="M 175 480 C 125 480 40 480 40 420 C 40 360 310 380 310 320 C 310 260 40 280 40 220 C 40 160 310 180 310 120 C 310 60 175 80 175 30" />
                         
                         <!-- Glow filter for electricity effect (optional) -->
                         <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
@@ -186,31 +186,31 @@
                     
                     <!-- 1. The Wire (Visual) -->
                     <!-- Main metallic wire -->
-                    <path d="M 175 480 C 120 480 50 460 30 400 L 30 320 C 30 280 100 300 130 260 S 220 220 260 260 S 320 220 320 180 L 320 120 C 320 60 200 80 175 30"
+                    <path d="M 175 480 C 125 480 40 480 40 420 C 40 360 310 380 310 320 C 310 260 40 280 40 220 C 40 160 310 180 310 120 C 310 60 175 80 175 30"
                           fill="none" stroke="#d2b48c" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;" />
                     <!-- Highlight for metallic effect -->
-                    <path d="M 175 480 C 120 480 50 460 30 400 L 30 320 C 30 280 100 300 130 260 S 220 220 260 260 S 320 220 320 180 L 320 120 C 320 60 200 80 175 30"
+                    <path d="M 175 480 C 125 480 40 480 40 420 C 40 360 310 380 310 320 C 310 260 40 280 40 220 C 40 160 310 180 310 120 C 310 60 175 80 175 30"
                           fill="none" stroke="#f5e6d3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;" />
 
-                    <!-- Start Point -->
+                    <!-- Start Point (Bottom) -->
                     <circle cx="175" cy="480" r="8" fill="#8f7042" style="pointer-events: none;" />
-                    <!-- End Point -->
+                    <!-- End Point (Top) -->
                     <circle cx="175" cy="30" r="8" fill="#4caf50" opacity="0.8" style="pointer-events: none;" />
 
                     <!-- 2. The Player (Handle + Ring) -->
                     <!-- Uses a group to move both together. Add pointer-events to auto or bounding-box -->
                     <g id="player-group" transform="translate(175, 480)">
-                         <!-- Handle (Dark Grey Stick) -->
-                         <path d="M 0,14 L 0,60" stroke="#4a4a4a" stroke-width="6" stroke-linecap="round" />
+                         <!-- Handle Stick (Dark Grey) -->
+                         <path d="M 0,14 L 0,60" stroke="#4a4a4a" stroke-width="6" stroke-linecap="round" style="pointer-events: none;" />
                          <!-- Handle Grip (Visual) -->
-                         <rect x="-6" y="40" width="12" height="20" rx="3" fill="#333" />
+                         <rect x="-6" y="40" width="12" height="20" rx="3" fill="#333" style="pointer-events: none;" />
                          
                          <!-- The Ring (Metal Circle) -->
-                         <!-- r=15 -->
-                         <circle id="player-ring" cx="0" cy="0" r="15" fill="transparent" stroke="#5c452d" stroke-width="4" />
+                         <circle id="player-ring" cx="0" cy="0" r="15" fill="transparent" stroke="#5c452d" stroke-width="4" style="pointer-events: none;" />
                          
-                         <!-- Hit Area: Large transparent rect to make grabbing easier -->
-                         <rect x="-30" y="-15" width="60" height="95" fill="transparent" />
+                         <!-- Hit Area: LARGE transparent rect to make grabbing easier -->
+                         <!-- Covers Ring area, Stick area, and surrounding buffer -->
+                         <rect x="-40" y="-40" width="80" height="140" fill="transparent" />
                     </g>
                     
                     <!-- Collision Marker (Shows where user hit) -->
