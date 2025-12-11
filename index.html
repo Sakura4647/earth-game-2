@@ -42,11 +42,19 @@
       body {
         font-family: 'Noto Sans TC', sans-serif;
         background-color: #fcfbf7;
-        overflow: hidden;
+        /* Allow vertical scrolling, prevent horizontal */
+        overflow-x: hidden;
+        overflow-y: auto;
         user-select: none;
         -webkit-user-select: none;
+        /* Removed global touch-action: none to allow page scrolling */
+      }
+      
+      /* Specific class to lock touch actions within the game area */
+      .game-touch-lock {
         touch-action: none;
       }
+
       .wood-texture {
         background-color: #fcfbf7;
         background-image: radial-gradient(#d4c5b8 0.5px, transparent 0.5px),
@@ -141,7 +149,8 @@
 
         <!-- Game Area -->
         <div class="w-full flex-grow flex justify-center items-center pt-20 pb-4 relative overflow-hidden">
-            <div class="relative w-full max-w-[350px] aspect-[350/500] border-4 border-wood-300 rounded-2xl bg-white shadow-inner mx-4 select-none touch-none">
+            <!-- Added game-touch-lock class here to prevent page scrolling only inside the game board -->
+            <div class="relative w-full max-w-[350px] aspect-[350/500] border-4 border-wood-300 rounded-2xl bg-white shadow-inner mx-4 select-none game-touch-lock">
                 <svg id="game-svg" viewBox="0 0 350 500" class="w-full h-full cursor-crosshair">
                     <!-- Path Definition -->
                     <defs>
@@ -180,7 +189,8 @@
 
     <!-- === RESULT MODAL === -->
     <div id="result-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-wood-900/60 backdrop-blur-sm fade-in">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden p-6 text-center relative">
+        <!-- Added max-h-[90vh] and overflow-y-auto to allow scrolling inside modal -->
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto p-6 text-center relative">
             <div class="text-7xl mb-4">⛰️</div>
             <div class="mb-4">
                 <p class="text-wood-600 mb-1 font-bold tracking-wider text-lg">結果</p>
@@ -233,7 +243,8 @@
 
     <!-- === RULES MODAL === -->
     <div id="rules-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-wood-900/60 backdrop-blur-sm fade-in">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden p-6 relative">
+        <!-- Added max-h-[90vh] and overflow-y-auto to allow scrolling inside modal -->
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto p-6 relative">
             <button id="btn-close-rules" class="absolute top-4 right-4 text-wood-400 hover:text-wood-700 transition-colors p-2 rounded-full hover:bg-wood-100">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
